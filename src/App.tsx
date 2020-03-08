@@ -1,6 +1,7 @@
 import React from "react";
 import "./App.css";
 
+// 型定義
 type FeeClassification = {
   name: string;
   description: string;
@@ -11,21 +12,23 @@ type FeeClassification = {
 
 type DetailProps = {
   classification: FeeClassification;
+  onNumOfPeopleChange: (num: number) => void;
 };
 
-type DetailState = {
+type SummaryProps = {
   numOfPeople: number;
+  totalAmount: number;
 };
 
-class Detail extends React.Component<DetailProps, DetailState> {
-  constructor(props: DetailProps) {
-    super(props);
-    this.state = { numOfPeople: props.classification.numOfPeople };
-  }
+// コンポーネント定義
+type AdmissionFeeCalculatorState = {
+  feeClassifications: FeeClassification[];
+};
 
+class Detail extends React.Component<DetailProps, {}> {
   onNumOfpeopleChange(e: React.ChangeEvent<HTMLSelectElement>): void {
     const num: number = Number(e.target.value);
-    this.setState({ numOfPeople: num });
+    this.props.onNumOfPeopleChange(num);
   }
 
   render() {
@@ -42,7 +45,7 @@ class Detail extends React.Component<DetailProps, DetailState> {
         </div>
         <div className="num-people">
           <select
-            value={this.state.numOfPeople}
+            value={this.props.classification.numOfPeople}
             onChange={e => this.onNumOfpeopleChange(e)}
           >
             <option value="0">0</option>
@@ -58,17 +61,21 @@ class Detail extends React.Component<DetailProps, DetailState> {
   }
 }
 
-class Summary extends React.Component {
+class Summary extends React.Component<SummaryProps, {}> {
   render() {
     return (
       <div>
         <div className="party">
-          <input type="text" className="party" value="0" />
+          <input type="text" className="party" value={this.props.numOfPeople} />
           <span>名様</span>
         </div>
         <div className="total-amount">
           <span>合計</span>
-          <input type="text" className="total-amount" value="0" />
+          <input
+            type="text"
+            className="total-amount"
+            value={this.props.totalAmount}
+          />
           <span>円</span>
         </div>
       </div>
@@ -76,55 +83,92 @@ class Summary extends React.Component {
   }
 }
 
-class AdmissionFeeCalculator extends React.Component {
-  private details: DetailProps[] = [
-    {
-      classification: {
-        name: "大人",
-        description: "",
-        unitPrice: 1000,
-        numOfPeople: 0,
-        totalPrice: 0
-      }
-    },
-    {
-      classification: {
-        name: "学生",
-        description: "中学生・高校生",
-        unitPrice: 700,
-        numOfPeople: 0,
-        totalPrice: 0
-      }
-    },
-    {
-      classification: {
-        name: "子ども",
-        description: "小校生",
-        unitPrice: 300,
-        numOfPeople: 0,
-        totalPrice: 0
-      }
-    },
-    {
-      classification: {
-        name: "幼児",
-        description: "未就学",
-        unitPrice: 0,
-        numOfPeople: 0,
-        totalPrice: 0
-      }
-    }
-  ];
+class AdmissionFeeCalculator extends React.Component<
+  {},
+  AdmissionFeeCalculatorState
+> {
+  // コンストラクター
+  constructor(props: {}) {
+    super(props);
+    const adults: FeeClassification = {
+      name: "大人",
+      description: "",
+      unitPrice: 1000,
+      numOfPeople: 0,
+      totalPrice: 0
+    };
+
+    const students: FeeClassification = {
+      name: "学生",
+      description: "中学生・高校生",
+      unitPrice: 700,
+      numOfPeople: 0,
+      totalPrice: 0
+    };
+
+    const children: FeeClassification = {
+      name: "子ども",
+      description: "小校生",
+      unitPrice: 300,
+      numOfPeople: 0,
+      totalPrice: 0
+    };
+
+    const infants: FeeClassification = {
+      name: "幼児",
+      description: "未就学",
+      unitPrice: 0,
+      numOfPeople: 0,
+      totalPrice: 0
+    };
+
+    this.state = { feeClassifications: [adults, students, children, infants] };
+  }
+
+  // 金額変更時に、stateを変更するメソッド
+  handleNumOfPeopleChange(idx: number, num: number) {
+    // 現在の料金クラスを格納
+    const currentFC = this.state.feeClassifications[idx];
+    // 変更後のトータル金額を計算
+    const newTotalPrice = currentFC.unitPrice * num;
+    // 変更後の料金クラスを格納(currentFCと新しいtotalPriceをもつオブジェクトをassignして作成)
+    const newFC: FeeClassification = Object.assign({}, currentFC, {
+      numOfPeople: num,
+      totalPrice: newTotalPrice
+    });
+    // 引数なしのsleceを実行して、オブジェクトをコピー
+    const feeClassifications = this.state.feeClassifications.slice();
+    // 指定idの料金クラスを変更後の料金クラスに変更
+    feeClassifications[idx] = newFC;
+    // 変更した料金クラスリストでstateを更新
+    this.setState({ feeClassifications: feeClassifications });
+  }
 
   render() {
-    const detailsJsx = this.details.map((fc, idx) => {
-      return <Detail key={idx.toString()} classification={fc.classification} />;
+    const details = this.state.feeClassifications.map((fc, idx) => {
+      return (
+        <Detail
+          key={idx.toString()}
+          classification={fc}
+          onNumOfPeopleChange={n => this.handleNumOfPeopleChange(idx, n)}
+        />
+      );
     });
+
+    // 各料金クラスに格納された人数の合計を算出
+    const numOfPeople = this.state.feeClassifications
+      .map(fc => fc.numOfPeople)
+      .reduce((p, c) => p + c);
+
+    // 各料金クラスに格納された金額の合計を算出
+    const totalAmount = this.state.feeClassifications
+      .map(fc => fc.totalPrice)
+      .reduce((p, c) => p + c);
 
     return (
       <>
-        {detailsJsx}
-        <Summary />
+        {details}
+        <Summary numOfPeople={numOfPeople} totalAmount={totalAmount} />
       </>
     );
   }
