@@ -1,15 +1,33 @@
 import React from "react";
 import "./App.css";
 
-class Detail extends React.Component {
+type FeeClassification = {
+  name: string;
+  description: string;
+  unitPrice: number;
+  numOfPeople: number;
+  totalPrice: number;
+};
+
+type DetailProps = {
+  classification: FeeClassification;
+};
+
+class Detail extends React.Component<DetailProps, {}> {
   render() {
     return (
       <div>
-        <div className="classification-name">名前</div>
-        <div className="description">説明</div>
-        <div className="unit-price">0円</div>
+        <div className="classification-name">
+          {this.props.classification.name}
+        </div>
+        <div className="description">
+          {this.props.classification.description}
+        </div>
+        <div className="unit-price">
+          {this.props.classification.unitPrice}円
+        </div>
         <div className="num-people">
-          <select value="0">
+          <select value={this.props.classification.numOfPeople}>
             <option value="0">0</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -42,10 +60,19 @@ class Summary extends React.Component {
 }
 
 class AdmissionFeeCalculator extends React.Component {
+  private detail: DetailProps = {
+    classification: {
+      name: "大人",
+      description: "",
+      unitPrice: 1000,
+      numOfPeople: 0,
+      totalPrice: 0
+    }
+  };
   render() {
     return (
       <>
-        <Detail />
+        <Detail classification={this.detail.classification} />
         <Summary />
       </>
     );
