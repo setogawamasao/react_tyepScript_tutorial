@@ -1,6 +1,8 @@
 import React from "react";
 import "./App.css";
 
+// 参考：https://qiita.com/yonetty/items/012be4c5c6258a609e35
+
 // 型定義
 type FeeClassification = {
   name: string;
