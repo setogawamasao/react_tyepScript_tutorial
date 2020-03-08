@@ -122,6 +122,7 @@ class AdmissionFeeCalculator extends React.Component<
       totalPrice: 0
     };
 
+    // stateを設定
     this.state = { feeClassifications: [adults, students, children, infants] };
   }
 
@@ -145,6 +146,7 @@ class AdmissionFeeCalculator extends React.Component<
   }
 
   render() {
+    // 自身のStateを子コンポーネントに付与(子で起こった変更を検知できる)
     const details = this.state.feeClassifications.map((fc, idx) => {
       return (
         <Detail
